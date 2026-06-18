@@ -6,7 +6,7 @@ Build a complete energy & commodity quantitative risk analysis platform (Python 
 ## Constraints & Preferences
 - Backend: yfinance, pandas, numpy, scipy, statsmodels, openpyxl, matplotlib, rich
 - Live terminal dashboard: rich TUI with market prices, regime state, VaR/CVaR, scenario outlook
-- Single command (`python terminal_dashboard.py`) to run pipeline + live dashboard
+- Single command: double-click `run.bat` (root) or `python backend/terminal_dashboard.py`
 - Branding: "SHESHA FINTECH & AI" in the terminal header
 - All backend scripts run from `backend/` directory; outputs written to `../data/` and `../outputs/`
 
@@ -17,8 +17,9 @@ Build a complete energy & commodity quantitative risk analysis platform (Python 
 - **regime_model.py** — 2-state & 3-state Markov Regression on Brent log returns with lagged VIX exogenous; model comparison via AIC/BIC with automatic degenerate-regime fallback; smoothed crisis probabilities; regime-conditional full correlation matrix (Brent, WTI, Gold, VIX returns per regime); transition matrix & expected regime durations; forward regime probability forecast (5/10/21/30 days); residual diagnostics (Ljung-Box, ARCH, Jarque-Bera); 4-panel chart (prices, probabilities, residuals, squared residuals)
 - **scenario_simulator.py** — 30-day Monte Carlo (1,000 paths) across 3 scenarios (Status Quo, Moderate Escalation, Severe Disruption); GARCH(1,1) volatility modeling per regime via MLE; multivariate normal with regime-conditional Cholesky correlations; blended dynamics across scenarios; VaR (90%/95%/99%), CVaR, max drawdown/upside per scenario-asset; full distribution export (simulation_distribution.csv)
 - **generate_impact_sheet.py** — 6-sheet Excel workbook: Executive Dashboard (price inputs + sector margins), Detailed Impact Model (cost buildup per sector), Assumptions Register, Sensitivity Analysis (price shock grid 0–70% across sectors), Risk Metrics (VaR/CVaR matrix), Profit Waterfall (Severe Disruption per $100 revenue); conditional formatting (danger/warning/good color fills)
-- **run_all.py** — orchestrates all 4 scripts sequentially; checks output files exist
-- **terminal_dashboard.py** — live rich TUI dashboard: runs full pipeline, displays prices, regime state, VaR/CVaR, scenario outlook, regime correlations in real-time; `--refresh` flag for continuous refresh every 5 min
+- **generate_report.py** — comprehensive 10-section PDF report with 14 charts (11 2D + 4 3D): price series, return distributions, realized vol, rolling metrics, regime probability, correlation heatmaps, forward forecast, VaR comparison, scenario fan chart, sensitivity heatmap, 3D returns scatter (regime-colored), 3D vol surface, 3D VaR bars, 3D tail risk profile; reportlab-based with embedded figures and styled tables
+- **run_all.py** — orchestrates all 5 scripts sequentially; checks output files exist
+- **terminal_dashboard.py** — live rich TUI dashboard: runs full pipeline (all 5 scripts), displays prices, regime state, VaR/CVaR, scenario outlook, regime correlations in real-time; `--refresh` flag for continuous refresh every 5 min; shows PDF report status in footer
 
 ### In Progress
 - (none)

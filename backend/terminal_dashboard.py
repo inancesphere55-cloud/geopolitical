@@ -23,6 +23,7 @@ SCRIPTS = [
     ("regime_model.py", "../data/market_regime_output.csv"),
     ("scenario_simulator.py", "../data/multi_asset_stress_matrix.csv"),
     ("generate_impact_sheet.py", "../outputs/Energy_Commodity_Shock_Model.xlsx"),
+    ("generate_report.py", "../outputs/Energy_Commodity_Geopolitical_Risk_Report.pdf"),
 ]
 
 BASE_BRENT = 79.55
@@ -240,7 +241,9 @@ def make_scenario_panel(data):
 
 
 def make_footer():
-    help_text = "[dim]Ctrl+C to exit  |  Pipeline runs on startup, re-run with: python terminal_dashboard.py --refresh[/]"
+    pdf_path = ROOT / "../outputs/Energy_Commodity_Geopolitical_Risk_Report.pdf"
+    pdf_status = f"[green]PDF Report Ready[/]" if pdf_path.exists() else "[dim]PDF report pending[/]"
+    help_text = f"[dim]Ctrl+C to exit  |  {pdf_status}  |  --refresh for auto-update every 5min[/]"
     return Panel(Align.center(help_text), box=HEAVY, style="bright_cyan")
 
 
