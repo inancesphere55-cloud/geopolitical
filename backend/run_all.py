@@ -9,6 +9,7 @@ SCRIPTS = [
     ("scenario_simulator.py", "../data/multi_asset_stress_matrix.csv"),
     ("generate_impact_sheet.py", "../outputs/Energy_Commodity_Shock_Model.xlsx"),
     ("generate_report.py", "../outputs/Energy_Commodity_Geopolitical_Risk_Report.pdf"),
+    ("ai_insights.py", "../data/ai_insights.json"),
 ]
 
 def main():

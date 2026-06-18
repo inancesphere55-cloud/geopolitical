@@ -1,4 +1,4 @@
-import os, warnings
+import os, warnings, json
 from pathlib import Path
 from datetime import datetime
 
@@ -637,7 +637,8 @@ def build_pdf(mkt, reg, stress, dist, cn, cc, charts):
         "7. Sector Impact Assessment",
         "8. Sensitivity Analysis",
         "9. Residual Diagnostics",
-        "10. Conclusions & Risk Recommendations",
+        "10. AI-Generated Insights & Anomaly Detection",
+        "11. Conclusions & Risk Recommendations",
         "Appendix: Methodology & Model Specifications",
     ]
     for item in toc_items:
@@ -908,8 +909,128 @@ def build_pdf(mkt, reg, stress, dist, cn, cc, charts):
     elements.append(Paragraph(lb_text, body))
     elements.append(PageBreak())
 
-    # ═══════════════ 10. CONCLUSIONS ═══════════════
-    elements.append(Paragraph("10. Conclusions & Risk Recommendations", h1))
+    # ═══════════════ 10. AI-GENERATED INSIGHTS ═══════════════
+    elements.append(Paragraph("10. AI-Generated Insights & Anomaly Detection", h1))
+    elements.append(Paragraph(
+        "The AI Insights Engine applies multiple advanced analytics to extract actionable intelligence "
+        "from the quantitative model outputs. Using Isolation Forest anomaly detection on 10-dimensional "
+        "feature space (returns, volatility, correlations, skewness, kurtosis, downside risk, and regime "
+        "probability), the system identifies statistically anomalous market events and generates "
+        "narrative-driven risk assessments.", body))
+    elements.append(Spacer(1, 0.2 * cm))
+
+    try:
+        ai_path = DATA / "ai_insights.json"
+        if ai_path.exists():
+            with open(ai_path) as f:
+                ai_data = json.load(f)
+
+            rs = ai_data["risk_score"]
+            rd = ai_data["regime_dynamics"]
+            anomalies = ai_data.get("anomalies", [])
+            corr_insights = ai_data.get("correlation_insights", [])
+            scenario_insights = ai_data.get("scenario_insights", [])
+            recs = ai_data.get("recommendations", [])
+
+            # Risk Score
+            ai_table = [
+                ["Metric", "Value", "Interpretation"],
+                ["AI Risk Score", f"{rs['score']:.0f}/100", f"Level: {rs['level']}"],
+                ["Crisis Prob. Contribution", f"{rs['crisis_prob_contribution']:.1f}/30", "From Markov regime model"],
+                ["Volatility Contribution", f"{rs['volatility_contribution']:.1f}/20", "From 21d realized vol"],
+                ["Anomaly Contribution", f"{rs['anomaly_contribution']:.1f}/20", "From Isolation Forest detection"],
+                ["Correlation Contribution", f"{rs['correlation_contribution']:.1f}/15", "From regime-dependent corr shifts"],
+            ]
+            t = Table(ai_table, colWidths=[4.5 * cm, 3.5 * cm, 8 * cm])
+            t.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), BRAND),
+                ("TEXTCOLOR", (0, 0), (-1, 0), white),
+                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+                ("FONTSIZE", (0, 0), (-1, -1), 8),
+                ("ALIGN", (1, 0), (1, -1), "CENTER"),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [white, HexColor("#F5F5F5")]),
+            ]))
+            elements.append(Paragraph("Composite Geopolitical Risk Score", h2))
+            elements.append(t)
+
+            elements.append(Spacer(1, 0.3 * cm))
+            elements.append(Paragraph(
+                f"<b>Risk Narrative:</b> {rs['narrative']}", body))
+            elements.append(Spacer(1, 0.3 * cm))
+
+            # Regime dynamics
+            elements.append(Paragraph("Regime Dynamics Analysis", h2))
+            elements.append(Paragraph(
+                f"<b>Regime Narrative:</b> {rd['narrative']}", body))
+            elements.append(Spacer(1, 0.2 * cm))
+
+            # Anomaly table
+            if anomalies:
+                elements.append(Paragraph(f"Detected Anomalies (last 252 trading days)", h2))
+                anom_table_data = [["Date", "Type", "Severity", "Top Factor", "Z-Score"]]
+                for a in anomalies[:6]:
+                    factors = a.get("top_factors", {})
+                    top_factor = list(factors.keys())[0] if factors else "—"
+                    top_z = list(factors.values())[0] if factors else 0
+                    anom_table_data.append([
+                        a["date"][:10], a["type"].replace("_", " "),
+                        a["severity"], top_factor, f"{top_z:+.1f}",
+                    ])
+                t = Table(anom_table_data, colWidths=[2.5 * cm, 3 * cm, 2 * cm, 4 * cm, 1.5 * cm])
+                t.setStyle(TableStyle([
+                    ("BACKGROUND", (0, 0), (-1, 0), BRAND),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), white),
+                    ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 7),
+                    ("ALIGN", (1, 0), (-1, -1), "CENTER"),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [white, HexColor("#F5F5F5")]),
+                ]))
+                elements.append(t)
+                elements.append(Spacer(1, 0.2 * cm))
+                elements.append(Paragraph(f"<i>Sample anomaly narrative: {anomalies[0]['narrative'][:200]}...</i>",
+                                          ParagraphStyle("AnomNarr", parent=body, fontSize=8, textColor=HexColor("#555555"))))
+
+            elements.append(Spacer(1, 0.3 * cm))
+
+            # Correlation insights
+            if corr_insights:
+                elements.append(Paragraph("Correlation Regime Insights", h2))
+                for ci in corr_insights:
+                    elements.append(Paragraph(ci["narrative"], body))
+
+            # Scenario insights
+            if scenario_insights:
+                elements.append(Paragraph("Scenario Intelligence", h2))
+                for si in scenario_insights:
+                    elements.append(Paragraph(si["narrative"], body))
+
+            # Recommendations
+            if recs:
+                elements.append(Paragraph("AI-Generated Strategy Recommendations", h2))
+                high_recs = [r for r in recs if r["priority"] == "HIGH"]
+                other_recs = [r for r in recs if r["priority"] != "HIGH"]
+                for r in high_recs:
+                    elements.append(Paragraph(
+                        f"<b>[HIGH] {r['action']}</b><br/>"
+                        f"<font size=8><i>Rationale: {r['rationale']}</i></font>", body))
+                    elements.append(Spacer(1, 0.1 * cm))
+                for r in other_recs:
+                    elements.append(Paragraph(
+                        f"<b>[{r['priority']}] {r['category']}:</b> {r['action']}", bullet))
+    except Exception as e:
+        elements.append(Paragraph(f"AI insights unavailable: {e}", body))
+
+    # Add 3D tail risk chart if available
+    if "3d_tail_risk" in charts and charts["3d_tail_risk"].exists():
+        elements.append(Spacer(1, 0.3 * cm))
+        elements.append(Image(str(charts["3d_tail_risk"]), width=14 * cm, height=10.5 * cm))
+        elements.append(Paragraph("Figure 15: 3D Tail Risk Profile — AI-Generated Visualization", caption))
+    elements.append(PageBreak())
+
+    # ═══════════════ 11. CONCLUSIONS ═══════════════
+    elements.append(Paragraph("11. Conclusions & Risk Recommendations", h1))
     conclusions = [
         "<b>Regime-Dependent Correlation Risk:</b> The Brent-Gold correlation flip from +0.11 (normal) to -0.12 (crisis) "
         "invalidates static hedge ratios. Dynamic hedging strategies should adjust gold-oil cross-hedges during "
